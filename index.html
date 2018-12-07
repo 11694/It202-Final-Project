@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>Info Windows</title>
+    <style>
+        #map {
+            height: 100%;
+        }
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 5;
+        }
+    </style>
+</head>
+
+<body>
+
+    <form>
+        <input id="ebox" name="ebox" type="text" placeholder="Enter a Bike #">
+        <button disabled type="button">Enter Bike</button>
+    </form>
+    <div id="map"></div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+    <script>
+        function initMap() {
+            var chicago = {
+                lat: 41.8781,
+                lng: -87.6298
+            };
+            var map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 11,
+                center: chicago,
+                mapTypeId: 'satellite'
+            });
+            var endpoint = "https://data.cityofchicago.org/resource/aavc-b2wj.json";
+            var url = endpoint + "?total_docks=" + $("#ebox").val();
+            $.ajax({
+                url: url,
+                type: "GET",
+                data: {
+                    "$limit": 50
+                }
+            }).done(function(data) {
+                //alert("Retrieved " + data.length + " records from the dataset!");
+                console.log(data);
+                $.each(data, function(i, v) {
+                    var marker = new google.maps.Marker({
+                        position: {
+                            lat: parseFloat(v.latitude),
+                            lng: parseFloat(v.longitude)
+                        },
+                        map: map,
+                        title: 'Chicago'
+                    });
+                    var infowindow = new google.maps.InfoWindow({
+                        content: "<h1>" + v.station_name + "</h1>" + "<p1>" + "Available Bikes: " + v.docks_in_service + "</p1>"
+                    });
+                    marker.addListener('click', function() {
+                        infowindow.open(map, marker);
+                    });
+                });
+            });
+        }
+    </script>
+
+
+    <script>
+        $("button").on("click", initMap)
+         $("#ebox").on("input", function(e) {
+            if($("#ebox").val() != "") {
+                $("button").prop("disabled", false);
+            } else {
+                $("button").prop("disabled", true);
+            }
+        });
+    </script>
+
+
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA23qcXuGK77p1Smzt7qKsJsMF61TMvDaY">
+    </script>
+</body>
+
+</html>
